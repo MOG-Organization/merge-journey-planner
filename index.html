@@ -167,6 +167,14 @@ tbody td{font-weight:700}
 .sim-lv{font-weight:900}
 .sim-lv small{display:block;font-size:.75rem;color:var(--soft);font-weight:700}
 #simOut h3{font-size:1.05rem;font-weight:900;margin:18px 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px}
+.chips button{border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-weight:700;font-size:.88rem;cursor:pointer;min-height:44px}
+.chips button[aria-pressed="true"]{background:var(--sky);border-color:var(--sky);color:var(--on-sky)}
+.chips .cnt{display:inline-block;margin-left:6px;background:var(--gold);color:var(--on-gold);border-radius:999px;padding:0 7px;font-size:.75rem;font-weight:900}
+.field select{border:2px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 12px;font-size:1rem;min-height:46px;width:100%;color:var(--ink)}
+.lv-tag{display:inline-block;margin-left:6px;font-size:.7rem;font-weight:900;border-radius:6px;padding:0 6px;background:var(--track);color:var(--muted);vertical-align:middle}
+.lv-tag.key{background:var(--gold);color:var(--on-gold)}
+.step-line{display:block;font-size:.78rem;color:var(--soft);font-weight:700}
 .sim-empty{font-weight:700;color:var(--muted);margin:14px 0 0}
 .steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;counter-reset:st}
 .steps li{counter-increment:st;display:flex;gap:12px;align-items:flex-start;background:var(--bg);border-radius:14px;padding:12px 14px}
@@ -229,9 +237,13 @@ tbody td{font-weight:700}
 
     <div class="card sim-card">
       <h2>合成の順番シミュレーター</h2>
-      <p class="muted" style="margin:-4px 0 12px">鍵マークのあるラインのピースを数えて入れると、合成する順番とカギまでのタップ数が出ます。</p>
-      <div class="row-btns" style="margin-bottom:12px"><button type="button" class="ghost" id="simEx">入力例を入れる</button><button type="button" class="ghost" id="simClear">クリア</button></div>
-      <div class="field" style="max-width:300px"><label for="simKey">カギが出るレベル（上のバーの鍵マーク）</label><input id="simKey" type="number" min="2" max="10" step="1" inputmode="numeric"></div>
+      <p class="muted" style="margin:-4px 0 12px">ボード上のピースをラインごとに数えて入れると、全ラインまとめて合成する順番とカギまでのタップ数が出ます。ピースのラインは、タップで出る名前や図鑑で確認できます。</p>
+      <div class="row-btns" style="margin-bottom:12px"><button type="button" class="ghost" id="simEx">入力例を入れる</button><button type="button" class="ghost" id="simClear">ぜんぶクリア</button></div>
+      <div class="grid2">
+        <div class="field"><label for="simKeyLine">鍵マークがあるライン</label><select id="simKeyLine"></select></div>
+        <div class="field"><label for="simKey">カギが出るレベル</label><input id="simKey" type="number" min="2" max="12" step="1" inputmode="numeric"></div>
+      </div>
+      <div class="chips" id="simLines" aria-label="入力するライン"></div>
       <div id="simGrid"></div>
       <div id="simOut" aria-live="polite"></div>
       <p class="note">畑1回で一本の麦穂（Lv1）が1つ出る前提で計算しています。</p>
@@ -391,7 +403,12 @@ tbody td{font-weight:700}
   }catch(e){}
   if(!state.pick || typeof state.pick !== 'object'){ state.pick = {}; }
   if(state.ePot === '' || state.ePot == null){ state.ePot = '5'; }
-  if(!state.sim || typeof state.sim !== 'object' || !Array.isArray(state.sim.f) || !Array.isArray(state.sim.b)){ state.sim = {key:'6', f:[], b:[]}; }
+  if(!state.sim || typeof state.sim !== 'object'){ state.sim = {}; }
+  if(!state.sim.lines || typeof state.sim.lines !== 'object'){ state.sim.lines = Array.isArray(state.sim.f) ? {bakery:{f:state.sim.f, b:Array.isArray(state.sim.b)?state.sim.b:[]}} : {}; }
+  delete state.sim.f; delete state.sim.b;
+  if(!state.sim.key) state.sim.key = '6';
+  if(!state.sim.keyLine) state.sim.keyLine = 'bakery';
+  if(!state.sim.cur) state.sim.cur = 'bakery';
   function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
 
   function $(id){ return document.getElementById(id); }
@@ -412,74 +429,106 @@ tbody td{font-weight:700}
   tabIds.forEach(function(t){ $('t-'+t).addEventListener('click', function(){ showTab(t); }); });
 
   /* ---------- merge simulator ---------- */
-  var SIM_MAX = 10;
-  var SIM_NAMES = {1:'一本の麦穂', 3:'一袋の小麦粉', 4:'パン生地'};
-  function simKey(){ var k = parseInt(state.sim.key, 10); return isFinite(k) ? Math.max(2, Math.min(SIM_MAX, k)) : 6; }
-  function simGet(k, l){ return Math.max(0, parseInt(state.sim[k][l], 10) || 0); }
-  function stepper(k, l, label){
-    var v = simGet(k, l);
+  var SIM_NAMES = {bakery:{1:'一本の麦穂', 3:'一袋の小麦粉', 4:'パン生地'}};
+  function lineOf(id){ for(var i=0;i<LINES.length;i++){ if(LINES[i].id===id) return LINES[i]; } return LINES[0]; }
+  function simLine(id){ if(!state.sim.lines[id] || !Array.isArray(state.sim.lines[id].f) || !Array.isArray(state.sim.lines[id].b)){ state.sim.lines[id] = {f:[], b:[]}; } return state.sim.lines[id]; }
+  function simGet(id, k, l){ return Math.max(0, parseInt(simLine(id)[k][l], 10) || 0); }
+  function simKey(){ var max = lineOf(state.sim.keyLine).stars.length; var k = parseInt(state.sim.key, 10); return isFinite(k) ? Math.max(2, Math.min(max, k)) : Math.min(6, max); }
+  function simCount(id){ var n = lineOf(id).stars.length, c = 0; for(var l=1;l<=n;l++){ c += simGet(id,'f',l) + simGet(id,'b',l); } return c; }
+  function stepper(id, k, l, label){
+    var v = simGet(id, k, l);
     return '<div class="step"><button type="button" data-k="'+k+'" data-l="'+l+'" data-d="-1" aria-label="Lv'+l+' '+label+'を減らす"'+(v<=0?' disabled':'')+'>−</button><output>'+v+'</output><button type="button" data-k="'+k+'" data-l="'+l+'" data-d="1" aria-label="Lv'+l+' '+label+'を増やす">＋</button></div>';
   }
+  function renderSimLines(){
+    var h = '';
+    LINES.forEach(function(L){
+      var c = simCount(L.id);
+      h += '<button type="button" data-line="'+L.id+'" aria-pressed="'+(state.sim.cur===L.id?'true':'false')+'">'+esc(L.name)+(c?'<span class="cnt">'+c+'</span>':'')+'</button>';
+    });
+    $('simLines').innerHTML = h;
+  }
   function renderSimGrid(){
-    var key = simKey();
-    var h = '<div class="sim-row sim-head"><span>レベル</span><span>ボード上</span><span>土の上</span></div>';
-    for(var l=1; l<key; l++){
-      h += '<div class="sim-row"><span class="sim-lv">Lv'+l+(SIM_NAMES[l]?'<small>'+SIM_NAMES[l]+'</small>':'')+'</span>'+stepper('f', l, 'ボード上')+stepper('b', l, '土の上')+'</div>';
+    var id = state.sim.cur, L = lineOf(id), n = L.stars.length, key = simKey(), isKey = (id === state.sim.keyLine);
+    var names = SIM_NAMES[id] || {};
+    var h = '<div class="sim-row sim-head"><span>'+esc(L.name)+'（全'+n+'レベル）</span><span>ボード上</span><span>土の上</span></div>';
+    for(var l=1; l<=n; l++){
+      var tags = '';
+      if(isKey && l === key) tags += '<span class="lv-tag key">カギ</span>';
+      if(l === n) tags += '<span class="lv-tag">最大</span>';
+      h += '<div class="sim-row"><span class="sim-lv">Lv'+l+tags+(names[l]?'<small>'+names[l]+'</small>':'')+'</span>'+stepper(id,'f',l,'ボード上')+stepper(id,'b',l,'土の上')+'</div>';
     }
     $('simGrid').innerHTML = h;
   }
-  function renderSimOut(){
-    var key = simKey(), f = [], b = [], l, total = 0, val = 0;
-    for(l=1; l<=key; l++){ f[l] = l<key ? simGet('f', l) : 0; b[l] = l<key ? simGet('b', l) : 0; total += f[l] + b[l]; val += (f[l] + b[l]) * Math.pow(2, l-1); }
-    if(!total){ $('simOut').innerHTML = '<p class="sim-empty">ピースの数を入れてください。</p>'; return; }
-    var steps = [], last = [], freed = 0;
-    for(l=1; l<key; l++){
-      var toKey = (l+1 === key);
+  function simCalc(id){
+    var L = lineOf(id), n = L.stars.length, isKey = (id === state.sim.keyLine), key = simKey();
+    var f = [], b = [], l, steps = [], last = [], freed = 0;
+    for(l=1; l<=n+1; l++){ f[l] = l<=n ? simGet(id,'f',l) : 0; b[l] = l<=n ? simGet(id,'b',l) : 0; }
+    var reached = false, val = 0;
+    if(isKey){ for(l=1; l<=n; l++){ if(l >= key && (f[l]+b[l]) > 0) reached = true; if(l < key) val += (f[l]+b[l]) * Math.pow(2, l-1); } }
+    for(l=1; l<n; l++){
+      var toKey = isKey && !reached && (l+1 === key);
       var m = Math.min(f[l], b[l]);
       if(m > 0){
         f[l] -= m; b[l] -= m; f[l+1] += m; freed += m;
-        (toKey ? last : steps).push({t:'Lv'+l+'を土の上のLv'+l+'に重ねる ×'+m, d:'土のマスが'+m+'つ解放、Lv'+(l+1)+'が'+m+'つ'+(toKey?'（カギが出る見込み）':'')});
+        (toKey ? last : steps).push({line:L.name, t:'Lv'+l+'を土の上のLv'+l+'に重ねる ×'+m, d:'土のマスが'+m+'つ解放、Lv'+(l+1)+'が'+m+'つ'+(toKey?'（カギが出る見込み）':'')});
       }
       var p = Math.floor(f[l] / 2);
       if(p > 0){
         f[l] -= 2*p; f[l+1] += p; freed += p;
-        (toKey ? last : steps).push({t:'Lv'+l+'どうしを合成 ×'+p, d:'Lv'+(l+1)+'が'+p+'つできる'+(toKey?'（カギが出る見込み）':'')});
+        (toKey ? last : steps).push({line:L.name, t:'Lv'+l+'どうしを合成 ×'+p, d:'Lv'+(l+1)+'が'+p+'つできる'+(toKey?'（カギが出る見込み）':'')});
       }
     }
+    var rest = [], restB = [];
+    for(l=1; l<=n; l++){ if(f[l] > 0) rest.push('Lv'+l+'×'+f[l]); if(b[l] > 0) restB.push('Lv'+l+'×'+b[l]); }
+    return {steps:steps, last:last, freed:freed, rest:rest, restB:restB, isKey:isKey, reached:reached, need:Math.pow(2, key-1) - val, name:L.name};
+  }
+  function renderSimOut(){
+    var total = 0; LINES.forEach(function(L){ total += simCount(L.id); });
+    if(!total){ $('simOut').innerHTML = '<p class="sim-empty">ピースの数を入れてください。</p>'; return; }
+    var steps = [], last = [], freed = 0, keyRes = null, left = [];
+    LINES.forEach(function(L){
+      if(!simCount(L.id) && L.id !== state.sim.keyLine) return;
+      var r = simCalc(L.id);
+      steps = steps.concat(r.steps); last = last.concat(r.last); freed += r.freed;
+      if(r.isKey) keyRes = r;
+      if(r.rest.length || r.restB.length) left.push(esc(r.name)+'：'+(r.rest.length?r.rest.join('、'):'なし')+(r.restB.length?'（土の上 '+r.restB.join('、')+'）':''));
+    });
     var h = '<h3>この順番で合成</h3>';
     if(!steps.length && !last.length){
       h += '<p class="sim-empty">合成できるペアはありません。畑をタップしましょう。</p>';
     } else {
       h += '<ol class="steps">';
-      steps.forEach(function(s){ h += '<li><div><b>'+esc(s.t)+'</b><small>'+esc(s.d)+'</small></div></li>'; });
-      last.forEach(function(s){ h += '<li class="last"><div><b>'+esc(s.t)+'<span class="tag">最後に</span></b><small>'+esc(s.d)+'</small></div></li>'; });
+      steps.forEach(function(s){ h += '<li><div><span class="step-line">'+esc(s.line)+'</span><b>'+esc(s.t)+'</b><small>'+esc(s.d)+'</small></div></li>'; });
+      last.forEach(function(s){ h += '<li class="last"><div><span class="step-line">'+esc(s.line)+'</span><b>'+esc(s.t)+'<span class="tag">最後に</span></b><small>'+esc(s.d)+'</small></div></li>'; });
       h += '</ol>';
     }
-    var need = Math.pow(2, key-1) - val;
-    h += '<div class="sim-sum"><div><small>空くマス</small><b>'+freed+'マス</b></div><div><small>カギ（Lv'+key+'）まで</small><b>'+(need<=0 ? '今の手持ちで届く' : 'あと約'+fmt(need)+'回タップ')+'</b></div></div>';
-    var rest = [], restB = [];
-    for(l=1; l<=key; l++){ if(f[l] > 0 && l < key) rest.push('Lv'+l+'×'+f[l]); if(b[l] > 0) restB.push('Lv'+l+'×'+b[l]); }
-    if(rest.length || restB.length){
-      h += '<p class="sim-left">合成後に残るピース：'+(rest.length?rest.join('、'):'なし')+(restB.length?'／土の上に残る：'+restB.join('、'):'')+'</p>';
-    }
+    var keyTxt = !keyRes ? '-' : (keyRes.reached ? '到達ずみ' : (keyRes.need <= 0 ? '今の手持ちで届く' : 'あと約'+fmt(keyRes.need)+'回タップ'));
+    h += '<div class="sim-sum"><div><small>空くマス</small><b>'+freed+'マス</b></div><div><small>カギ（'+esc(lineOf(state.sim.keyLine).name)+' Lv'+simKey()+'）まで</small><b>'+keyTxt+'</b></div></div>';
+    if(left.length) h += '<p class="sim-left">合成後に残るピース<br>'+left.join('<br>')+'</p>';
     $('simOut').innerHTML = h;
   }
+  function renderSim(){ renderSimLines(); renderSimGrid(); renderSimOut(); }
+  $('simLines').addEventListener('click', function(e){
+    var bt = e.target.closest('button[data-line]'); if(!bt) return;
+    state.sim.cur = bt.getAttribute('data-line'); save(); renderSim();
+    var again = document.querySelector('#simLines button[data-line="'+state.sim.cur+'"]'); if(again) again.focus();
+  });
   $('simGrid').addEventListener('click', function(e){
     var bt = e.target.closest('button[data-k]'); if(!bt) return;
-    var k = bt.getAttribute('data-k'), l = +bt.getAttribute('data-l'), d = +bt.getAttribute('data-d');
-    state.sim[k][l] = Math.max(0, simGet(k, l) + d);
-    save(); renderSimGrid(); renderSimOut();
+    var k = bt.getAttribute('data-k'), l = +bt.getAttribute('data-l'), d = +bt.getAttribute('data-d'), id = state.sim.cur;
+    simLine(id)[k][l] = Math.max(0, simGet(id, k, l) + d);
+    save(); renderSim();
     var again = document.querySelector('#simGrid button[data-k="'+k+'"][data-l="'+l+'"][data-d="'+d+'"]');
     if(again && !again.disabled) again.focus();
   });
-  $('simKey').addEventListener('input', function(){ state.sim.key = $('simKey').value; save(); renderSimGrid(); renderSimOut(); });
+  $('simKey').addEventListener('input', function(){ state.sim.key = $('simKey').value; save(); renderSim(); });
+  $('simKeyLine').addEventListener('change', function(){ state.sim.keyLine = $('simKeyLine').value; save(); renderSim(); });
   $('simEx').addEventListener('click', function(){
-    state.sim = {key:'6', f:[0,5,0,0,1,2], b:[]};
-    $('simKey').value = '6'; save(); renderSimGrid(); renderSimOut();
+    state.sim = {cur:'bakery', keyLine:'bakery', key:'6', lines:{bakery:{f:[0,5,0,0,1,2], b:[]}}};
+    $('simKey').value = '6'; $('simKeyLine').value = 'bakery'; save(); renderSim();
   });
   $('simClear').addEventListener('click', function(){
-    state.sim = {key: state.sim.key || '6', f:[], b:[]};
-    save(); renderSimGrid(); renderSimOut();
+    state.sim.lines = {}; save(); renderSim();
   });
 
   /* ---------- stars ---------- */
@@ -646,8 +695,10 @@ tbody td{font-weight:700}
   function renderAll(){ renderLines(); renderGoals(); renderItems(); renderShop(); renderEnergy(); }
   renderScen();
   renderAll();
-  $('simKey').value = state.sim.key || '6';
-  renderSimGrid(); renderSimOut();
+  $('simKeyLine').innerHTML = LINES.map(function(L){ return '<option value="'+L.id+'">'+esc(L.name)+'</option>'; }).join('');
+  $('simKeyLine').value = state.sim.keyLine;
+  $('simKey').value = state.sim.key;
+  renderSim();
   showTab(tabIds.indexOf(state.tab) >= 0 ? state.tab : 'guide');
   setInterval(renderEnergy, 60000);
 })();
