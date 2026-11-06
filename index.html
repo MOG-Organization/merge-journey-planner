@@ -175,6 +175,13 @@ tbody td{font-weight:700}
 .lv-tag{display:inline-block;margin-left:6px;font-size:.7rem;font-weight:900;border-radius:6px;padding:0 6px;background:var(--track);color:var(--muted);vertical-align:middle}
 .lv-tag.key{background:var(--gold);color:var(--on-gold)}
 .step-line{display:block;font-size:.78rem;color:var(--soft);font-weight:700}
+.warn-box{border:3px solid var(--warn);border-radius:14px;padding:12px 16px;margin-top:12px}
+#simOut .warn-box h3{margin:0 0 4px;color:var(--warn)}
+.warn-box ul{margin:0;padding-left:1.2em}
+.warn-box li{margin:8px 0}
+.warn-box li b{display:block}
+.warn-box p{margin:6px 0 0;font-size:.85rem;color:var(--muted)}
+.ok-box{margin:12px 0 0;font-weight:700;color:var(--sky)}
 .sim-empty{font-weight:700;color:var(--muted);margin:14px 0 0}
 .steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;counter-reset:st}
 .steps li{counter-increment:st;display:flex;gap:12px;align-items:flex-start;background:var(--bg);border-radius:14px;padding:12px 14px}
@@ -237,7 +244,7 @@ tbody td{font-weight:700}
 
     <div class="card sim-card">
       <h2>合成の順番シミュレーター</h2>
-      <p class="muted" style="margin:-4px 0 12px">ボード上のピースをラインごとに数えて入れると、全ラインまとめて合成する順番とカギまでのタップ数が出ます。ピースのラインは、タップで出る名前や図鑑で確認できます。</p>
+      <p class="muted" style="margin:-4px 0 12px">ボード上のピースをラインごとに数えて入れると、全ラインまとめて合成する順番とカギまでのタップ数が出ます。ピースをタップすると、ボードの下に「名前（Lv.○）」が出るので、そのレベルの行に入れてください。</p>
       <div class="row-btns" style="margin-bottom:12px"><button type="button" class="ghost" id="simEx">入力例を入れる</button><button type="button" class="ghost" id="simClear">ぜんぶクリア</button></div>
       <div class="grid2">
         <div class="field"><label for="simKeyLine">鍵マークがあるライン</label><select id="simKeyLine"></select></div>
@@ -301,7 +308,7 @@ tbody td{font-weight:700}
     <div class="card">
       <h2>交換する品</h2>
       <div id="items"></div>
-      <p class="note">名前は見た目からの仮の名前です。交換期限は11/10(火)9時ごろ（ボード終了の1日後）。</p>
+      <p class="note">交換できるのはボード終了の1日後までです。</p>
     </div>
     <div class="card">
       <div class="total"><span>使うコイン</span><b id="spend">0</b></div>
@@ -356,32 +363,32 @@ tbody td{font-weight:700}
   'use strict';
   var KEY = 'mergeventure-tool-v1';
   var LINES = [
-    {id:'bakery', name:'麦香ベーカリー', stars:[1,1,1,1,1,1,1,2,5,10,20,40], reward:'Lv1アイテム×1、茶色の本×45、巻物×45', coins:0},
-    {id:'sweets', name:'フルーティスイーツ', stars:[1,1,1,2,5,10,20,40,99], reward:'Lv1アイテム×1、茶色の本×45、巻物×45', coins:0},
+    {id:'bakery', name:'麦香ベーカリー', stars:[1,1,1,1,1,1,1,2,5,10,20,40], reward:'キャンピングカーLv1×1、宝石ハンドブック×45、宝石図面×45', coins:0},
+    {id:'sweets', name:'フルーティスイーツ', stars:[1,1,1,2,5,10,20,40,99], reward:'キャンピングカーLv1×1、宝石ハンドブック×45、宝石図面×45', coins:0},
     {id:'harvest', name:'思わぬ収穫', stars:[1,1,1,1,1], reward:'赤いキューブ×25、宝箱×10', coins:0},
-    {id:'lucky', name:'ラッキー宝箱', stars:[1,1,1,1,10], reward:'赤いキューブ×45、茶色の本×60、巻物×60', coins:0},
-    {id:'camper', name:'キャンピングカー', stars:[4,8,16,32], reward:'コイン2,500、茶色の本×20、巻物×20', coins:2500},
-    {id:'coinbox', name:'コイン宝箱', stars:[1,1,1,1,1,1], reward:'青い袋×1、茶色の本×20、宝箱×10', coins:0},
+    {id:'lucky', name:'ラッキー宝箱', stars:[1,1,1,1,10], reward:'赤いキューブ×45、宝石ハンドブック×60、宝石図面×60', coins:0},
+    {id:'camper', name:'キャンピングカー', stars:[4,8,16,32], reward:'コイン2,500、宝石ハンドブック×20、宝石図面×20', coins:2500},
+    {id:'coinbox', name:'コイン宝箱', stars:[1,1,1,1,1,1], reward:'青い袋×1、宝石ハンドブック×20、宝箱×10', coins:0},
     {id:'energy', name:'エナジー補給', stars:[1,1,1,1,1], reward:'青い袋×1、赤いキューブ×17、宝箱×10', coins:0},
-    {id:'farm', name:'農場のお宝', stars:[2,4,8,16,32], reward:'コイン2,500、茶色の本×20、巻物×20', coins:2500}
+    {id:'farm', name:'農場のお宝', stars:[2,4,8,16,32], reward:'コイン2,500、宝石ハンドブック×20、宝石図面×20', coins:2500}
   ];
   var GOALS = [
-    {n:80, t:'Lv1アイテム'},
+    {n:80, t:'キャンピングカーLv1'},
     {n:400, t:'報酬は未確認'},
     {n:800, t:'今回は届かない'}
   ];
   var ITEMS = [
-    {id:'lv1', name:'Lv1アイテム', price:10000, stock:1, hint:'80★でももらえる'},
-    {id:'bookB', name:'茶色の本', price:65, stock:55},
-    {id:'scroll', name:'巻物', price:65, stock:55},
-    {id:'crystalB', name:'青い結晶', price:330, stock:15},
-    {id:'ship', name:'船', price:330, stock:15},
-    {id:'bookBlue', name:'青い本×100', price:380, stock:15},
-    {id:'chest', name:'宝箱', price:280, stock:15},
-    {id:'crystalK', name:'黒い結晶', price:835, stock:6},
-    {id:'paw', name:'肉球の袋×1000', price:335, stock:15},
-    {id:'speed', name:'1時間加速', price:85, stock:25},
-    {id:'shield', name:'盾付き宝箱', price:50, stock:9999}
+    {id:'lv1', name:'キャンピングカーLv1', price:10000, stock:1, hint:'80★でももらえる'},
+    {id:'bookB', name:'宝石ハンドブック', price:65, stock:55},
+    {id:'scroll', name:'宝石図面', price:65, stock:55},
+    {id:'crystalB', name:'共通専門家の印', price:330, stock:15},
+    {id:'ship', name:'征服の帆', price:330, stock:15},
+    {id:'bookBlue', name:'学識の書×100', price:380, stock:15},
+    {id:'chest', name:'ペット突破材料セレクト箱', price:280, stock:15},
+    {id:'crystalK', name:'上級野生の印', price:835, stock:6},
+    {id:'paw', name:'ペットの餌×1000', price:335, stock:15},
+    {id:'speed', name:'1時間一般加速', price:85, stock:25},
+    {id:'shield', name:'Lv2安全資源セレクト宝箱', price:50, stock:9999}
   ];
   var DEFAULT_END = '2026-11-09T09:00';
   var PACKS = [
@@ -429,7 +436,7 @@ tbody td{font-weight:700}
   tabIds.forEach(function(t){ $('t-'+t).addEventListener('click', function(){ showTab(t); }); });
 
   /* ---------- merge simulator ---------- */
-  var SIM_NAMES = {bakery:{1:'一本の麦穂', 3:'一袋の小麦粉', 4:'パン生地'}};
+  var SIM_NAMES = {bakery:{1:'一本の麦穂', 2:'一束の麦穂', 3:'一袋の小麦粉', 4:'パン生地', 5:'バゲット'}, coinbox:{1:'コインダスト', 2:'旅コイン（使うとコイン×25）'}};
   function lineOf(id){ for(var i=0;i<LINES.length;i++){ if(LINES[i].id===id) return LINES[i]; } return LINES[0]; }
   function simLine(id){ if(!state.sim.lines[id] || !Array.isArray(state.sim.lines[id].f) || !Array.isArray(state.sim.lines[id].b)){ state.sim.lines[id] = {f:[], b:[]}; } return state.sim.lines[id]; }
   function simGet(id, k, l){ return Math.max(0, parseInt(simLine(id)[k][l], 10) || 0); }
@@ -461,13 +468,14 @@ tbody td{font-weight:700}
   }
   function simCalc(id){
     var L = lineOf(id), n = L.stars.length, isKey = (id === state.sim.keyLine), key = simKey();
-    var f = [], b = [], l, steps = [], last = [], freed = 0;
+    var f = [], b = [], l, steps = [], last = [], freed = 0, riskB = 0;
     for(l=1; l<=n+1; l++){ f[l] = l<=n ? simGet(id,'f',l) : 0; b[l] = l<=n ? simGet(id,'b',l) : 0; }
     var reached = false, val = 0;
     if(isKey){ for(l=1; l<=n; l++){ if(l >= key && (f[l]+b[l]) > 0) reached = true; if(l < key) val += (f[l]+b[l]) * Math.pow(2, l-1); } }
     for(l=1; l<n; l++){
       var toKey = isKey && !reached && (l+1 === key);
       var m = Math.min(f[l], b[l]);
+      if(m > 0 && f[l] >= 2) riskB += m;
       if(m > 0){
         f[l] -= m; b[l] -= m; f[l+1] += m; freed += m;
         (toKey ? last : steps).push({line:L.name, t:'Lv'+l+'を土の上のLv'+l+'に重ねる ×'+m, d:'土のマスが'+m+'つ解放、Lv'+(l+1)+'が'+m+'つ'+(toKey?'（カギが出る見込み）':'')});
@@ -480,16 +488,16 @@ tbody td{font-weight:700}
     }
     var rest = [], restB = [];
     for(l=1; l<=n; l++){ if(f[l] > 0) rest.push('Lv'+l+'×'+f[l]); if(b[l] > 0) restB.push('Lv'+l+'×'+b[l]); }
-    return {steps:steps, last:last, freed:freed, rest:rest, restB:restB, isKey:isKey, reached:reached, need:Math.pow(2, key-1) - val, name:L.name};
+    return {riskB:riskB, steps:steps, last:last, freed:freed, rest:rest, restB:restB, isKey:isKey, reached:reached, need:Math.pow(2, key-1) - val, name:L.name};
   }
   function renderSimOut(){
     var total = 0; LINES.forEach(function(L){ total += simCount(L.id); });
     if(!total){ $('simOut').innerHTML = '<p class="sim-empty">ピースの数を入れてください。</p>'; return; }
-    var steps = [], last = [], freed = 0, keyRes = null, left = [];
+    var steps = [], last = [], freed = 0, keyRes = null, left = [], riskB = 0;
     LINES.forEach(function(L){
       if(!simCount(L.id) && L.id !== state.sim.keyLine) return;
       var r = simCalc(L.id);
-      steps = steps.concat(r.steps); last = last.concat(r.last); freed += r.freed;
+      steps = steps.concat(r.steps); last = last.concat(r.last); freed += r.freed; riskB += r.riskB;
       if(r.isKey) keyRes = r;
       if(r.rest.length || r.restB.length) left.push(esc(r.name)+'：'+(r.rest.length?r.rest.join('、'):'なし')+(r.restB.length?'（土の上 '+r.restB.join('、')+'）':''));
     });
@@ -501,6 +509,14 @@ tbody td{font-weight:700}
       steps.forEach(function(s){ h += '<li><div><span class="step-line">'+esc(s.line)+'</span><b>'+esc(s.t)+'</b><small>'+esc(s.d)+'</small></div></li>'; });
       last.forEach(function(s){ h += '<li class="last"><div><span class="step-line">'+esc(s.line)+'</span><b>'+esc(s.t)+'<span class="tag">最後に</span></b><small>'+esc(s.d)+'</small></div></li>'; });
       h += '</ol>';
+      var warns = [];
+      if(riskB > 0) warns.push('<b>土の上より先に普通の合成をすると</b>重ねる相手がいなくなり、土のマスが最大'+riskB+'つ解放できなくなります。');
+      if(last.length && steps.length) warns.push('<b>カギの合成を先にすると</b>霧が開いてエリアが移った場合、まだ合成していないピースが保管場所に送られます（ルールより。錠前の霧で起きるかは未確認）。');
+      if(warns.length){
+        h += '<div class="warn-box"><h3>順番をまちがえると</h3><ul>'+warns.map(function(w){ return '<li>'+w+'</li>'; }).join('')+'</ul><p>それ以外は、順番が違っても最後まで合成すれば結果は同じです。</p></div>';
+      } else {
+        h += '<p class="ok-box">このボードは、どの順で合成しても結果は同じです。</p>';
+      }
     }
     var keyTxt = !keyRes ? '-' : (keyRes.reached ? '到達ずみ' : (keyRes.need <= 0 ? '今の手持ちで届く' : 'あと約'+fmt(keyRes.need)+'回タップ'));
     h += '<div class="sim-sum"><div><small>空くマス</small><b>'+freed+'マス</b></div><div><small>カギ（'+esc(lineOf(state.sim.keyLine).name)+' Lv'+simKey()+'）まで</small><b>'+keyTxt+'</b></div></div>';
