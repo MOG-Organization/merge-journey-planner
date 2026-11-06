@@ -141,6 +141,7 @@ tbody td{font-weight:700}
 .nav-meta{display:flex;justify-content:space-between;font-size:.8rem;color:var(--soft);margin:0 0 4px}
 @keyframes pop{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
 .pop{animation:pop .28s ease-out}
+.nav-card{border:3px solid var(--gold)}
 .nav-a{font-size:1.4rem;font-weight:900;margin:0 0 4px;color:var(--sky)}
 .yes{border:0;background:var(--sky);color:var(--on-sky);border-radius:12px;padding:8px 22px;cursor:pointer;font-weight:900;min-height:44px}
 .prio{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:8px}
@@ -168,7 +169,7 @@ tbody td{font-weight:700}
       <div><small>終了までのpt（無課金）</small><b id="sPts">-</b></div>
     </div>
     <div class="tabs" role="tablist">
-      <button role="tab" id="t-guide" aria-controls="p-guide" aria-selected="true">講座</button>
+      <button role="tab" id="t-guide" aria-controls="p-guide" aria-selected="true">次の一手</button>
       <button role="tab" id="t-stars" aria-controls="p-stars" aria-selected="false">★チェック</button>
       <button role="tab" id="t-shop" aria-controls="p-shop" aria-selected="false">商隊</button>
       <button role="tab" id="t-energy" aria-controls="p-energy" aria-selected="false">エナジー</button>
@@ -179,6 +180,7 @@ tbody td{font-weight:700}
 <main class="wrap">
   <!-- GUIDE -->
   <section id="p-guide" role="tabpanel" aria-labelledby="t-guide">
+    <div class="card nav-card" id="nav" aria-live="polite"></div>
     <div class="card">
       <h2>ボードの見方</h2>
       <div class="tiles">
@@ -188,7 +190,6 @@ tbody td{font-weight:700}
         <div class="tile"><span class="sw sw-fog" aria-hidden="true"></span><div><b>灰色の霧</b><small>探索が進むと開く</small></div></div>
       </div>
     </div>
-    <div class="card" id="nav" aria-live="polite"></div>
     <div class="card">
       <h2>迷ったらこの順番</h2>
       <ol class="prio">
@@ -387,7 +388,7 @@ tbody td{font-weight:700}
   ];
   var navStep = 0, navRes = null;
   function renderNav(){
-    var h = '<h2>次の一手ナビ</h2><ol class="trail" aria-label="質問の進み具合">';
+    var h = '<h2>次の一手ナビ</h2><p class="muted" style="margin:-4px 0 14px">ボードを見ながら、はい・いいえで答えるだけ</p><ol class="trail" aria-label="質問の進み具合">';
     NAV_META.forEach(function(m,i){
       var cls = i < navStep ? 'done' : (i === navStep ? (navRes ? 'hit' : 'now') : '');
       h += '<li class="'+cls+'"'+(i === navStep ? ' aria-current="step"' : '')+'><span class="dot">'+ICON[m.icon]+'</span><span class="lb">'+esc(m.short)+'</span></li>';
