@@ -184,16 +184,16 @@ tbody td{font-weight:700}
     <div class="card">
       <h2>ボードの見方</h2>
       <div class="tiles">
-        <div class="tile"><span class="sw sw-open" aria-hidden="true"></span><div><b>明るいマス</b><small>空きマス。ピースを置ける</small></div></div>
+        <div class="tile"><span class="sw sw-open" aria-hidden="true"></span><div><b>明るいマス</b><small>空きマス。新しいピースは自動でここに出る</small></div></div>
         <div class="tile"><span class="sw sw-dirt" aria-hidden="true"></span><div><b>土のマス</b><small>同じピースを重ねると解放</small></div></div>
-        <div class="tile"><span class="sw sw-lock" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg></span><div><b>錠前の白い霧</b><small>カギで開く</small></div></div>
+        <div class="tile"><span class="sw sw-lock" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg></span><div><b>錠前の白い霧</b><small>カギが出ると自動で開く</small></div></div>
         <div class="tile"><span class="sw sw-fog" aria-hidden="true"></span><div><b>灰色の霧</b><small>探索が進むと開く</small></div></div>
       </div>
     </div>
     <div class="card">
       <h2>迷ったらこの順番</h2>
       <ol class="prio">
-        <li><b>カギ</b><span>霧が開いてマスと生成倍率が増える</span></li>
+        <li><b>カギが出るまで合成</b><span>霧が自動で開いて、マスと生成倍率が増える</span></li>
         <li><b>土のマスの解放</b><span>使えるマスが増える</span></li>
         <li><b>図鑑の新しいピース</b><span>★がもらえる</span></li>
         <li><b>最大レベルのピース</b><span>タップでコインなど</span></li>
@@ -204,7 +204,7 @@ tbody td{font-weight:700}
       <h2>よくある迷いどころ</h2>
       <dl class="faq">
         <dt>知らないピースがある</dt><dd>タップすると名前と使い方が出ます。</dd>
-        <dt>上のバーの鍵マーク</dt><dd>そのあたりのレベルまで合成するとカギが出る見込みです（推測）。</dd>
+        <dt>上のバーの鍵マーク</dt><dd>そのあたりのレベルまで合成するとカギが出る見込みです（推測）。カギは自動で使われ、霧が開きます。</dd>
         <dt>エリアを移ったらピースが消えた</dt><dd>保管場所に入っています。バブルをタップすると1個ずつ出せます。</dd>
         <dt>ピースが出てこない</dt><dd>空きマスがないと出ません。合成してマスを空けましょう。</dd>
       </dl>
@@ -365,10 +365,9 @@ tbody td{font-weight:700}
   /* ---------- guide nav ---------- */
   var NAV = [
     {q:'同じピースが2つある？（土の上のものも含む）', yes:{t:'重ねて合成', d:'片方が土の上なら、空いている方を土の上に重ねるとマスも解放されます。'}},
-    {q:'カギを持っている？', yes:{t:'カギで錠前の霧を開ける', d:'マスが広がり、探索も進みます。'}},
     {q:'空きマスが2つ以下？', yes:{t:'マスを空ける', d:'タップで使えるピース（最大レベルなど）を使うか、合成できる組み合わせを探します。'}},
     {q:'保管場所にバブルがある？', yes:{t:'バブルをタップ', d:'1回に1個出せます。空きマスが必要です。'}},
-    {q:'エナジーが残っている？', yes:{t:'畑をタップ', d:'出たピースはすぐ合成。終わったら最初の質問に戻ります。'}, no:{t:'回復を待つ', d:'上限で溢れる前に戻りましょう。ミッションとラプソディの受け取りも確認。'}}
+    {q:'エナジーが残っている？', yes:{t:'畑をタップ', d:'ピースは空きマスに自動で出ます。出たらすぐ合成（鍵マークのラインを優先すると、カギが出て霧が自動で開きます）。終わったら最初の質問に戻ります。'}, no:{t:'回復を待つ', d:'上限で溢れる前に戻りましょう。ミッションとラプソディの受け取りも確認。'}}
   ];
   var SV = function(p){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>'; };
   var ICON = {
@@ -381,7 +380,6 @@ tbody td{font-weight:700}
   };
   var NAV_META = [
     {icon:'merge', short:'合成'},
-    {icon:'key', short:'カギ'},
     {icon:'grid', short:'空きマス'},
     {icon:'bubble', short:'バブル'},
     {icon:'bolt', short:'エナジー'}
