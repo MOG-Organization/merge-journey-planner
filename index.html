@@ -189,9 +189,10 @@ tbody td{font-weight:700}
     </div>
 
     <div class="card">
-      <h2>課金で増えるエナジー（比べたい分だけ）</h2>
+      <h2>課金パック（各1回まで）</h2>
+      <div class="field"><label for="ePot">エナジーボトル1本で増えるエナジー（ラプソディの表示では5）</label><input id="ePot" type="number" inputmode="numeric" min="0" step="1" placeholder="5"></div>
       <div class="scen" id="scen"></div>
-      <p class="note">旅ブーストやパックの画面に書かれたエナジー量と価格を入れてください。</p>
+      <p class="note">2つ以上チェックすると、組み合わせた場合も結果に出ます。ラプソディの2パックは「全レベル分」のボトル数で、レベルを上げるごとに受け取ります。旅ブーストパック1は未確認です。</p>
     </div>
 
     <div class="card">
@@ -245,17 +246,25 @@ tbody td{font-weight:700}
     {id:'shield', name:'盾付き宝箱', price:50, stock:9999}
   ];
   var DEFAULT_END = '2026-11-09T09:00';
+  var PACKS = [
+    {id:'p2', name:'旅ブーストパック2', yen:800, bottles:4},
+    {id:'p3', name:'旅ブーストパック3', yen:1600, bottles:7},
+    {id:'p4', name:'旅ブーストパック4', yen:3200, bottles:12},
+    {id:'r1', name:'麦香る黄金波', yen:800, bottles:7, note:'レベル到達で受け取り'},
+    {id:'r2', name:'黄金の麦畑', yen:1600, bottles:14, note:'レベル到達で受け取り'}
+  ];
 
   var state = {
     tab:'stars', got:{}, buy:{}, coinNow:'', coinPlan:false, coinExtra:'',
     eNow:'', eCap:'', eInt:'', eLogin:'', eEnd:DEFAULT_END, eFree:'', eGoal:'',
-    scen:[{label:'課金A', energy:'', price:''},{label:'課金B', energy:'', price:''}]
+    ePot:'', pick:{}
   };
   try{
     var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
     if(saved && typeof saved === 'object'){ for(var k in saved){ if(k in state) state[k] = saved[k]; } }
   }catch(e){}
-  if(!Array.isArray(state.scen) || state.scen.length !== 2){ state.scen = [{label:'課金A', energy:'', price:''},{label:'課金B', energy:'', price:''}]; }
+  if(!state.pick || typeof state.pick !== 'object'){ state.pick = {}; }
+  if(state.ePot === '' || state.ePot == null){ state.ePot = '5'; }
   function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
 
   function $(id){ return document.getElementById(id); }
@@ -358,17 +367,17 @@ tbody td{font-weight:700}
 
   /* ---------- energy ---------- */
   function renderScen(){
-    var html = '<div class="card"><b>無課金</b><p class="note">追加なし</p></div>';
-    state.scen.forEach(function(s,i){
-      html += '<div class="card"><div class="field"><label for="sl'+i+'">名前</label><input id="sl'+i+'" data-s="'+i+'" data-k="label" type="text" value="'+esc(s.label)+'"></div>'+
-        '<div class="field"><label for="se'+i+'">追加エナジー</label><input id="se'+i+'" data-s="'+i+'" data-k="energy" type="number" inputmode="numeric" min="0" step="1" value="'+esc(s.energy)+'" placeholder="0"></div>'+
-        '<div class="field" style="margin:0"><label for="sp'+i+'">価格（メモ）</label><input id="sp'+i+'" data-s="'+i+'" data-k="price" type="text" value="'+esc(s.price)+'" placeholder="例：1,600円"></div></div>';
+    var html = '';
+    PACKS.forEach(function(p){
+      var on = !!state.pick[p.id];
+      html += '<div class="card"><label class="check"><input type="checkbox" data-p="'+p.id+'"'+(on?' checked':'')+'> '+esc(p.name.replace('旅ブースト',''))+'</label>'+
+        '<p class="note" style="margin:0">¥'+fmt(p.yen)+'／ボトル×'+p.bottles+'<br>1本あたり約¥'+fmt(p.yen/p.bottles)+(p.note?'<br>'+esc(p.note):'')+'</p></div>';
     });
     $('scen').innerHTML = html;
   }
-  $('scen').addEventListener('input', function(e){
-    var t = e.target; if(!t.hasAttribute('data-s')) return;
-    state.scen[+t.getAttribute('data-s')][t.getAttribute('data-k')] = t.value;
+  $('scen').addEventListener('change', function(e){
+    var t = e.target; if(!t.hasAttribute('data-p')) return;
+    state.pick[t.getAttribute('data-p')] = t.checked;
     save(); renderEnergy(); 
   });
 
@@ -403,12 +412,19 @@ tbody td{font-weight:700}
     else status += ' ' + f.login + '時間おきなら溢れません。';
     $('eStatus').textContent = status;
 
+    var pot = num(state.ePot);
     var rows = [{label:'無課金', energy:f.total, price:'-'}];
-    state.scen.forEach(function(s){
-      if(num(s.energy) > 0) rows.push({label:s.label || '課金', energy:f.total + num(s.energy), price:s.price || '-'});
+    var selB = 0, selY = 0, selN = 0;
+    PACKS.forEach(function(p){
+      rows.push({label:'＋'+p.name.replace('旅ブースト',''), bottles:p.bottles, price:'¥'+fmt(p.yen)});
+      if(state.pick[p.id]){ selB += p.bottles; selY += p.yen; selN++; }
     });
+    if(selN > 1) rows.push({label:'＋チェックした組み合わせ', bottles:selB, price:'¥'+fmt(selY)});
     $('eRows').innerHTML = rows.map(function(r){
-      return '<tr><td>'+esc(r.label)+'</td><td>'+fmt(r.energy)+'</td><td>'+fmt(r.energy*80)+'</td><td>'+esc(r.price)+'</td></tr>';
+      var e = r.bottles ? f.total + r.bottles*pot : r.energy;
+      var eTxt = (r.bottles && !pot) ? fmt(f.total)+'＋ボトル'+r.bottles : fmt(e);
+      var pTxt = (r.bottles && !pot) ? '-' : fmt(e*80);
+      return '<tr><td>'+esc(r.label)+'</td><td>'+eTxt+'</td><td>'+pTxt+'</td><td>'+esc(r.price)+'</td></tr>';
     }).join('');
     $('sPts').textContent = fmt(f.total*80);
 
@@ -421,7 +437,7 @@ tbody td{font-weight:700}
   }
 
   /* ---------- simple inputs ---------- */
-  ['coinNow','coinExtra','eNow','eCap','eInt','eLogin','eEnd','eFree','eGoal'].forEach(function(k){
+  ['coinNow','coinExtra','eNow','eCap','eInt','eLogin','eEnd','eFree','eGoal','ePot'].forEach(function(k){
     var el = $(k);
     el.value = state[k] || '';
     el.addEventListener('input', function(){ state[k] = el.value; save(); renderShop(); renderEnergy(); });
