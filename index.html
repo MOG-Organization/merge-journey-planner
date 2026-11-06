@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>マージの旅 攻略ツール</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF4F8; --surface:#FFFFFF; --ink:#2B1A10; --muted:#5B4636; --soft:#5B6670;
+  --wood:#4A2A17; --on-wood:#FFFFFF; --gold:#E8A21A; --on-gold:#2B1A10;
+  --sky:#2F6FA8; --on-sky:#FFFFFF; --line:#D5DDE3; --track:#E2E9EE; --warn:#B4400F;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#17120E; --surface:#241C16; --ink:#F3EBE3; --muted:#D2C2B2; --soft:#B5ADA5;
+    --wood:#3A2214; --on-wood:#FFFFFF; --gold:#F2B33A; --on-gold:#2B1A10;
+    --sky:#6AA6DB; --on-sky:#0F1E2B; --line:#3B3029; --track:#33291F; --warn:#FF9A6B;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#17120E; --surface:#241C16; --ink:#F3EBE3; --muted:#D2C2B2; --soft:#B5ADA5;
+  --wood:#3A2214; --on-wood:#FFFFFF; --gold:#F2B33A; --on-gold:#2B1A10;
+  --sky:#6AA6DB; --on-sky:#0F1E2B; --line:#3B3029; --track:#33291F; --warn:#FF9A6B;
+  color-scheme: dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Zen Maru Gothic','Hiragino Maru Gothic ProN','Hiragino Sans','Meiryo',sans-serif;font-weight:500;line-height:1.55;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--wood)}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+header{background:var(--wood);color:var(--on-wood);padding:20px 16px 0;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.wrap{max-width:760px;margin:0 auto}
+h1{margin:0;font-size:1.5rem;font-weight:900;letter-spacing:.02em}
+.sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0 14px}
+.sum div{background:rgba(255,255,255,.1);border-radius:14px;padding:8px 12px}
+.sum small{display:block;font-size:.78rem;opacity:.85;font-weight:700}
+.sum b{font-size:1.45rem;font-weight:900;line-height:1.2;font-variant-numeric:tabular-nums}
+.tabs{display:flex;gap:4px}
+.tabs button{flex:1;border:0;background:transparent;color:var(--on-wood);padding:12px 6px 14px;font-weight:700;font-size:1rem;border-radius:14px 14px 0 0;cursor:pointer;min-height:48px;opacity:.8}
+.tabs button[aria-selected="true"]{background:var(--bg);color:var(--ink);opacity:1;font-weight:900}
+
+main{padding:20px 16px 48px}
+section[hidden]{display:none}
+.card{background:var(--surface);border-radius:20px;padding:18px;margin-bottom:14px}
+h2{font-size:1.15rem;font-weight:900;margin:0 0 10px}
+.muted{color:var(--muted)}
+.note{font-size:.85rem;color:var(--soft);margin:6px 0 0}
+
+/* stars */
+.goal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.goal div{border-radius:14px;padding:10px;background:var(--track);text-align:center}
+.goal div.ok{background:var(--sky);color:var(--on-sky)}
+.goal b{display:block;font-size:1.35rem;font-weight:900}
+.goal span{font-size:.82rem;font-weight:700}
+.bar{height:14px;border-radius:7px;background:var(--track);overflow:hidden;margin:12px 0 4px}
+.bar i{display:block;height:100%;background:var(--gold);border-radius:7px;transition:width .25s}
+.line-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.line-head h3{margin:0;font-size:1.05rem;font-weight:900}
+.line-head .pts{font-weight:900;font-variant-numeric:tabular-nums}
+.pieces{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 8px}
+.piece{min-width:56px;min-height:48px;border-radius:12px;border:2px solid var(--line);background:var(--surface);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 6px;line-height:1.1}
+.piece small{font-size:.7rem;color:var(--soft);font-weight:700}
+.piece b{font-size:.95rem;font-weight:900}
+.piece[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:var(--on-gold)}
+.piece[aria-pressed="true"] small{color:var(--on-gold)}
+.reward{font-size:.85rem;color:var(--muted)}
+.reward.done{color:var(--sky);font-weight:700}
+.row-btns{display:flex;gap:8px;flex-wrap:wrap}
+.ghost{border:2px solid var(--line);background:transparent;border-radius:12px;padding:8px 14px;cursor:pointer;font-weight:700;min-height:44px}
+
+/* shop */
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.field label{font-weight:700;font-size:.92rem}
+.field input{border:2px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 12px;font-size:1.05rem;min-height:46px;width:100%;font-variant-numeric:tabular-nums}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.check{display:flex;align-items:center;gap:10px;font-weight:700;min-height:44px;cursor:pointer}
+.check input{width:22px;height:22px;accent-color:var(--sky)}
+.item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item .nm{flex:1;min-width:0}
+.item .nm b{display:block;font-weight:900}
+.item .nm small{color:var(--soft);font-size:.82rem}
+.step{display:flex;align-items:center;gap:4px}
+.step button{width:44px;height:44px;border-radius:12px;border:0;background:var(--track);font-size:1.3rem;font-weight:900;cursor:pointer}
+.step button:disabled{opacity:.35;cursor:default}
+.step output{min-width:44px;text-align:center;font-weight:900;font-variant-numeric:tabular-nums}
+.total{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.total b{font-size:1.6rem;font-weight:900;font-variant-numeric:tabular-nums}
+.bad{color:var(--warn);font-weight:900}
+
+/* energy */
+.scen{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.scen .card{margin:0;padding:12px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:10px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{font-size:.85rem;color:var(--soft)}
+tbody td{font-weight:700}
+.tbl{overflow-x:auto}
+.big{font-size:1.5rem;font-weight:900}
+@media (max-width:560px){
+  .scen{grid-template-columns:minmax(0,1fr)}
+  .sum b{font-size:1.2rem}
+}
+@media (prefers-reduced-motion: reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>マージの旅 攻略ツール</h1>
+    <div class="sum" aria-live="polite">
+      <div><small>旅の星</small><b id="sStars">0★</b></div>
+      <div><small>交換後のコイン</small><b id="sCoins">0</b></div>
+      <div><small>終了までのpt（無課金）</small><b id="sPts">-</b></div>
+    </div>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="t-stars" aria-controls="p-stars" aria-selected="true">★チェック</button>
+      <button role="tab" id="t-shop" aria-controls="p-shop" aria-selected="false">商隊</button>
+      <button role="tab" id="t-energy" aria-controls="p-energy" aria-selected="false">エナジー試算</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- STARS -->
+  <section id="p-stars" role="tabpanel" aria-labelledby="t-stars">
+    <div class="card">
+      <h2>旅の記録</h2>
+      <div class="goal" id="goals"></div>
+      <div class="bar"><i id="starBar" style="width:0"></i></div>
+      <p class="note">図鑑の合計は最大415★。手に入れたピースをタップしてください。</p>
+    </div>
+    <div id="lines"></div>
+    <div class="row-btns"><button class="ghost" id="resetStars" type="button">★チェックをリセット</button></div>
+  </section>
+
+  <!-- SHOP -->
+  <section id="p-shop" role="tabpanel" aria-labelledby="t-shop" hidden>
+    <div class="card">
+      <h2>コイン</h2>
+      <div class="field">
+        <label for="coinNow">いま持っているコイン</label>
+        <input id="coinNow" type="number" inputmode="numeric" min="0" step="1" placeholder="0">
+      </div>
+      <label class="check"><input type="checkbox" id="coinPlan"> まだ完成していない図鑑ラインのコインも見込む</label>
+      <p class="note" id="coinPlanNote"></p>
+      <div class="field" style="margin-top:8px">
+        <label for="coinExtra">そのほか見込みコイン（最大レベルのピースなど）</label>
+        <input id="coinExtra" type="number" inputmode="numeric" min="0" step="1" placeholder="0">
+      </div>
+    </div>
+    <div class="card">
+      <h2>交換する品</h2>
+      <div id="items"></div>
+      <p class="note">名前は見た目からの仮の名前です。交換期限は11/10(火)9時ごろ（ボード終了の1日後）。</p>
+    </div>
+    <div class="card">
+      <div class="total"><span>使うコイン</span><b id="spend">0</b></div>
+      <div class="total"><span>使えるコイン</span><b id="budget">0</b></div>
+      <div class="total"><span>残り</span><b id="left">0</b></div>
+    </div>
+    <div class="row-btns"><button class="ghost" id="resetShop" type="button">選んだ品をリセット</button></div>
+  </section>
+
+  <!-- ENERGY -->
+  <section id="p-energy" role="tabpanel" aria-labelledby="t-energy" hidden>
+    <div class="card">
+      <h2>いまの状態</h2>
+      <div class="grid2">
+        <div class="field"><label for="eNow">いまのエナジー</label><input id="eNow" type="number" inputmode="numeric" min="0" step="1" placeholder="0"></div>
+        <div class="field"><label for="eCap">エナジー上限</label><input id="eCap" type="number" inputmode="numeric" min="0" step="1" placeholder="未確認"></div>
+        <div class="field"><label for="eInt">1回復するまでの分数</label><input id="eInt" type="number" inputmode="decimal" min="0" step="0.5" placeholder="未確認"></div>
+        <div class="field"><label for="eLogin">ログインする間隔（時間）</label><input id="eLogin" type="number" inputmode="decimal" min="0.5" step="0.5" placeholder="4"></div>
+      </div>
+      <div class="field"><label for="eEnd">ボード終了日時</label><input id="eEnd" type="datetime-local"></div>
+      <div class="field"><label for="eFree">ミッションなどで無料でもらえるエナジー（合計）</label><input id="eFree" type="number" inputmode="numeric" min="0" step="1" placeholder="0"></div>
+      <p class="note">上限と回復時間はゲーム画面の数値を入れてください。上限が空欄なら、溢れなしとして計算します。</p>
+    </div>
+
+    <div class="card">
+      <h2>課金で増えるエナジー（比べたい分だけ）</h2>
+      <div class="scen" id="scen"></div>
+      <p class="note">旅ブーストやパックの画面に書かれたエナジー量と価格を入れてください。</p>
+    </div>
+
+    <div class="card">
+      <h2>結果</h2>
+      <p class="muted" id="eStatus"></p>
+      <div class="tbl"><table>
+        <thead><tr><th>プラン</th><th>使えるエナジー</th><th>獲得pt</th><th>価格</th></tr></thead>
+        <tbody id="eRows"></tbody>
+      </table></div>
+      <p class="note">1エナジー＝80pt（豊穣ラプソディのルール）。</p>
+    </div>
+
+    <div class="card">
+      <h2>目標ptまであといくつ？</h2>
+      <div class="field"><label for="eGoal">目標pt（豊穣ラプソディの報酬ラインなど）</label><input id="eGoal" type="number" inputmode="numeric" min="0" step="80" placeholder="例：40000"></div>
+      <p class="big" id="eGoalOut">-</p>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+  'use strict';
+  var KEY = 'mergeventure-tool-v1';
+  var LINES = [
+    {id:'bakery', name:'麦香ベーカリー', stars:[1,1,1,1,1,1,1,2,5,10,20,40], reward:'Lv1アイテム×1、茶色の本×45、巻物×45', coins:0},
+    {id:'sweets', name:'フルーティスイーツ', stars:[1,1,1,2,5,10,20,40,99], reward:'Lv1アイテム×1、茶色の本×45、巻物×45', coins:0},
+    {id:'harvest', name:'思わぬ収穫', stars:[1,1,1,1,1], reward:'赤いキューブ×25、宝箱×10', coins:0},
+    {id:'lucky', name:'ラッキー宝箱', stars:[1,1,1,1,10], reward:'赤いキューブ×45、茶色の本×60、巻物×60', coins:0},
+    {id:'camper', name:'キャンピングカー', stars:[4,8,16,32], reward:'コイン2,500、茶色の本×20、巻物×20', coins:2500},
+    {id:'coinbox', name:'コイン宝箱', stars:[1,1,1,1,1,1], reward:'青い袋×1、茶色の本×20、宝箱×10', coins:0},
+    {id:'energy', name:'エナジー補給', stars:[1,1,1,1,1], reward:'青い袋×1、赤いキューブ×17、宝箱×10', coins:0},
+    {id:'farm', name:'農場のお宝', stars:[2,4,8,16,32], reward:'コイン2,500、茶色の本×20、巻物×20', coins:2500}
+  ];
+  var GOALS = [
+    {n:80, t:'Lv1アイテム'},
+    {n:400, t:'報酬は未確認'},
+    {n:800, t:'今回は届かない'}
+  ];
+  var ITEMS = [
+    {id:'lv1', name:'Lv1アイテム', price:10000, stock:1, hint:'80★でももらえる'},
+    {id:'bookB', name:'茶色の本', price:65, stock:55},
+    {id:'scroll', name:'巻物', price:65, stock:55},
+    {id:'crystalB', name:'青い結晶', price:330, stock:15},
+    {id:'ship', name:'船', price:330, stock:15},
+    {id:'bookBlue', name:'青い本×100', price:380, stock:15},
+    {id:'chest', name:'宝箱', price:280, stock:15},
+    {id:'crystalK', name:'黒い結晶', price:835, stock:6},
+    {id:'paw', name:'肉球の袋×1000', price:335, stock:15},
+    {id:'speed', name:'1時間加速', price:85, stock:25},
+    {id:'shield', name:'盾付き宝箱', price:50, stock:9999}
+  ];
+  var DEFAULT_END = '2026-11-09T09:00';
+
+  var state = {
+    tab:'stars', got:{}, buy:{}, coinNow:'', coinPlan:false, coinExtra:'',
+    eNow:'', eCap:'', eInt:'', eLogin:'', eEnd:DEFAULT_END, eFree:'', eGoal:'',
+    scen:[{label:'課金A', energy:'', price:''},{label:'課金B', energy:'', price:''}]
+  };
+  try{
+    var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if(saved && typeof saved === 'object'){ for(var k in saved){ if(k in state) state[k] = saved[k]; } }
+  }catch(e){}
+  if(!Array.isArray(state.scen) || state.scen.length !== 2){ state.scen = [{label:'課金A', energy:'', price:''},{label:'課金B', energy:'', price:''}]; }
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+
+  function $(id){ return document.getElementById(id); }
+  function num(v){ var n = parseFloat(v); return isFinite(n) && n >= 0 ? n : 0; }
+  function fmt(n){ return Math.round(n).toLocaleString('ja-JP'); }
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+  /* ---------- tabs ---------- */
+  var tabIds = ['stars','shop','energy'];
+  function showTab(id){
+    state.tab = id;
+    tabIds.forEach(function(t){
+      $('t-'+t).setAttribute('aria-selected', t === id ? 'true' : 'false');
+      $('p-'+t).hidden = t !== id;
+    });
+    save();
+  }
+  tabIds.forEach(function(t){ $('t-'+t).addEventListener('click', function(){ showTab(t); }); });
+
+  /* ---------- stars ---------- */
+  function lineGot(l){ return state.got[l.id] || []; }
+  function lineStars(l){ var g = lineGot(l), s = 0; l.stars.forEach(function(v,i){ if(g[i]) s += v; }); return s; }
+  function lineDone(l){ var g = lineGot(l); return l.stars.every(function(_,i){ return !!g[i]; }); }
+  function totalStars(){ return LINES.reduce(function(a,l){ return a + lineStars(l); }, 0); }
+
+  function renderLines(){
+    var html = '';
+    LINES.forEach(function(l){
+      var g = lineGot(l), max = l.stars.reduce(function(a,b){return a+b;},0);
+      html += '<div class="card"><div class="line-head"><h3>'+esc(l.name)+'</h3><span class="pts">'+lineStars(l)+' / '+max+'★</span></div><div class="pieces">';
+      l.stars.forEach(function(v,i){
+        html += '<button type="button" class="piece" data-line="'+l.id+'" data-i="'+i+'" aria-pressed="'+(g[i]?'true':'false')+'" aria-label="'+esc(l.name)+' レベル'+(i+1)+' '+v+'つ星"><small>Lv'+(i+1)+'</small><b>'+v+'★</b></button>';
+      });
+      html += '</div><div class="reward'+(lineDone(l)?' done':'')+'">'+(lineDone(l)?'完成：':'完成で：')+esc(l.reward)+'</div></div>';
+    });
+    $('lines').innerHTML = html;
+  }
+  $('lines').addEventListener('click', function(e){
+    var b = e.target.closest('.piece'); if(!b) return;
+    var id = b.getAttribute('data-line'), i = +b.getAttribute('data-i');
+    var l = LINES.filter(function(x){return x.id===id;})[0];
+    var g = (state.got[id] || l.stars.map(function(){return false;})).slice();
+    var turnOn = !g[i];
+    // 合成ラインなので、上のレベルを取ったら下も取ったことにする／外したら上も外す
+    if(turnOn){ for(var k=0;k<=i;k++) g[k]=true; } else { for(var m=i;m<g.length;m++) g[m]=false; }
+    state.got[id] = g; save(); renderAll();
+    var again = document.querySelector('.piece[data-line="'+id+'"][data-i="'+i+'"]'); if(again) again.focus();
+  });
+  $('resetStars').addEventListener('click', function(){ state.got = {}; save(); renderAll(); });
+
+  function renderGoals(){
+    var s = totalStars(), html = '';
+    GOALS.forEach(function(g){
+      var ok = s >= g.n;
+      html += '<div class="'+(ok?'ok':'')+'"><b>'+g.n+'★</b><span>'+(ok?'達成':'あと'+(g.n-s)+'★')+'</span><br><span>'+esc(g.t)+'</span></div>';
+    });
+    $('goals').innerHTML = html;
+    $('starBar').style.width = Math.min(100, s/415*100) + '%';
+    $('sStars').textContent = s + '★';
+  }
+
+  /* ---------- shop ---------- */
+  function renderItems(){
+    var html = '';
+    ITEMS.forEach(function(it){
+      var q = state.buy[it.id] || 0;
+      html += '<div class="item"><div class="nm"><b>'+esc(it.name)+'</b><small>'+fmt(it.price)+'コイン ・ 残り'+fmt(it.stock)+(it.hint?' ・ '+esc(it.hint):'')+'</small></div>'+
+        '<div class="step"><button type="button" data-id="'+it.id+'" data-d="-1" aria-label="'+esc(it.name)+'を減らす"'+(q<=0?' disabled':'')+'>−</button>'+
+        '<output aria-live="polite">'+q+'</output>'+
+        '<button type="button" data-id="'+it.id+'" data-d="1" aria-label="'+esc(it.name)+'を増やす"'+(q>=it.stock?' disabled':'')+'>＋</button></div></div>';
+    });
+    $('items').innerHTML = html;
+  }
+  $('items').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-id]'); if(!b) return;
+    var id = b.getAttribute('data-id'), d = +b.getAttribute('data-d');
+    var it = ITEMS.filter(function(x){return x.id===id;})[0];
+    var q = Math.max(0, Math.min(it.stock, (state.buy[id]||0) + d));
+    state.buy[id] = q; save(); renderAll();
+    var again = document.querySelector('#items button[data-id="'+id+'"][data-d="'+d+'"]');
+    if(again && !again.disabled) again.focus();
+  });
+  $('resetShop').addEventListener('click', function(){ state.buy = {}; save(); renderAll(); });
+
+  function plannedCoins(){
+    return LINES.reduce(function(a,l){ return a + (l.coins && !lineDone(l) ? l.coins : 0); }, 0);
+  }
+  function renderShop(){
+    var spend = ITEMS.reduce(function(a,it){ return a + it.price*(state.buy[it.id]||0); }, 0);
+    var pc = plannedCoins();
+    $('coinPlanNote').textContent = pc > 0 ? '未完成ラインの完成で +' + fmt(pc) + 'コイン（キャンピングカー・農場のお宝）' : 'コインがもらえる図鑑ラインはすべて完成済みです。';
+    var budget = num(state.coinNow) + (state.coinPlan ? pc : 0) + num(state.coinExtra);
+    var left = budget - spend;
+    $('spend').textContent = fmt(spend);
+    $('budget').textContent = fmt(budget);
+    $('left').textContent = (left < 0 ? 'あと' + fmt(-left) + '不足' : fmt(left));
+    $('left').className = left < 0 ? 'bad' : '';
+    $('sCoins').textContent = left < 0 ? '−' + fmt(-left) : fmt(left);
+  }
+
+  /* ---------- energy ---------- */
+  function renderScen(){
+    var html = '<div class="card"><b>無課金</b><p class="note">追加なし</p></div>';
+    state.scen.forEach(function(s,i){
+      html += '<div class="card"><div class="field"><label for="sl'+i+'">名前</label><input id="sl'+i+'" data-s="'+i+'" data-k="label" type="text" value="'+esc(s.label)+'"></div>'+
+        '<div class="field"><label for="se'+i+'">追加エナジー</label><input id="se'+i+'" data-s="'+i+'" data-k="energy" type="number" inputmode="numeric" min="0" step="1" value="'+esc(s.energy)+'" placeholder="0"></div>'+
+        '<div class="field" style="margin:0"><label for="sp'+i+'">価格（メモ）</label><input id="sp'+i+'" data-s="'+i+'" data-k="price" type="text" value="'+esc(s.price)+'" placeholder="例：1,600円"></div></div>';
+    });
+    $('scen').innerHTML = html;
+  }
+  $('scen').addEventListener('input', function(e){
+    var t = e.target; if(!t.hasAttribute('data-s')) return;
+    state.scen[+t.getAttribute('data-s')][t.getAttribute('data-k')] = t.value;
+    save(); renderEnergy(); 
+  });
+
+  function freeEnergy(){
+    var now = Date.now();
+    var end = new Date(state.eEnd || DEFAULT_END).getTime();
+    var mins = isFinite(end) ? Math.max(0, (end - now) / 60000) : 0;
+    var iv = num(state.eInt);
+    var cap = num(state.eCap);
+    var login = num(state.eLogin) || 4;
+    var base = num(state.eNow) + num(state.eFree);
+    if(!iv){ return {ok:false, total:base, ideal:base, loss:0, mins:mins}; }
+    var ideal = Math.floor(mins / iv);
+    var rec;
+    if(!cap){ rec = ideal; }
+    else{
+      var L = login * 60;
+      var per = Math.min(Math.floor(L / iv), cap);
+      var cycles = Math.floor(mins / L);
+      var rest = Math.min(Math.floor((mins - cycles*L) / iv), cap);
+      rec = cycles * per + rest;
+    }
+    return {ok:true, total: base + rec, ideal: base + ideal, loss: ideal - rec, mins: mins, capSet: !!cap, login: login};
+  }
+  function renderEnergy(){
+    var f = freeEnergy();
+    var h = Math.floor(f.mins/60), m = Math.floor(f.mins%60);
+    var status = '終了まで ' + h + '時間' + m + '分。';
+    if(!f.ok) status += ' 回復の分数を入れると、自然回復分も計算します（いまは手持ちと無料分のみ）。';
+    else if(!f.capSet) status += ' 上限が未入力なので、溢れなしで計算しています。';
+    else if(f.loss > 0) status += ' ' + f.login + '時間おきだと、上限で約' + fmt(f.loss) + 'エナジーが溢れます。';
+    else status += ' ' + f.login + '時間おきなら溢れません。';
+    $('eStatus').textContent = status;
+
+    var rows = [{label:'無課金', energy:f.total, price:'-'}];
+    state.scen.forEach(function(s){
+      if(num(s.energy) > 0) rows.push({label:s.label || '課金', energy:f.total + num(s.energy), price:s.price || '-'});
+    });
+    $('eRows').innerHTML = rows.map(function(r){
+      return '<tr><td>'+esc(r.label)+'</td><td>'+fmt(r.energy)+'</td><td>'+fmt(r.energy*80)+'</td><td>'+esc(r.price)+'</td></tr>';
+    }).join('');
+    $('sPts').textContent = fmt(f.total*80);
+
+    var goal = num(state.eGoal);
+    if(goal > 0){
+      var need = Math.ceil(goal / 80);
+      var diff = need - f.total;
+      $('eGoalOut').textContent = diff <= 0 ? '無課金で届きます（必要 ' + fmt(need) + 'エナジー）' : 'あと ' + fmt(diff) + 'エナジー（必要 ' + fmt(need) + '）';
+    } else { $('eGoalOut').textContent = '-'; }
+  }
+
+  /* ---------- simple inputs ---------- */
+  ['coinNow','coinExtra','eNow','eCap','eInt','eLogin','eEnd','eFree','eGoal'].forEach(function(k){
+    var el = $(k);
+    el.value = state[k] || '';
+    el.addEventListener('input', function(){ state[k] = el.value; save(); renderShop(); renderEnergy(); });
+  });
+  $('coinPlan').checked = !!state.coinPlan;
+  $('coinPlan').addEventListener('change', function(){ state.coinPlan = $('coinPlan').checked; save(); renderShop(); });
+
+  function renderAll(){ renderLines(); renderGoals(); renderItems(); renderShop(); renderEnergy(); }
+  renderScen();
+  renderAll();
+  showTab(tabIds.indexOf(state.tab) >= 0 ? state.tab : 'stars');
+  setInterval(renderEnergy, 60000);
+})();
+</script>
+</body>
+</html>
