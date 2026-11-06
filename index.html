@@ -151,6 +151,43 @@ tbody td{font-weight:700}
 .faq dt{font-weight:900;margin-top:10px}
 .faq dt:first-child{margin-top:0}
 .faq dd{margin:2px 0 0;color:var(--muted)}
+.loop{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;counter-reset:lp}
+.loop li{position:relative;background:var(--bg);border-radius:16px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;counter-increment:lp}
+.loop li::before{content:counter(lp);position:absolute;top:8px;left:10px;font-weight:900;color:var(--soft);font-size:.85rem}
+.loop li:not(:last-child)::after{content:"";position:absolute;right:-11px;top:50%;border-left:9px solid var(--gold);border-top:8px solid transparent;border-bottom:8px solid transparent;transform:translateY(-50%);z-index:1}
+.lp-ic{width:56px;height:56px;border-radius:28px;background:var(--gold);color:var(--on-gold);display:flex;align-items:center;justify-content:center;margin-bottom:6px}
+.lp-ic svg{width:30px;height:30px}
+.loop li b{font-weight:900;line-height:1.3}
+.loop li small{font-size:.78rem;color:var(--muted);line-height:1.35}
+.loop-back{margin:12px 0 0;text-align:center;font-weight:700;color:var(--muted)}
+.sim-card{border:3px solid var(--gold)}
+.sim-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.sim-head{font-size:.8rem;color:var(--soft);font-weight:700;border-bottom:2px solid var(--line)}
+.sim-head span:not(:first-child){width:140px;text-align:center}
+.sim-lv{font-weight:900}
+.sim-lv small{display:block;font-size:.75rem;color:var(--soft);font-weight:700}
+#simOut h3{font-size:1.05rem;font-weight:900;margin:18px 0 8px}
+.sim-empty{font-weight:700;color:var(--muted);margin:14px 0 0}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;counter-reset:st}
+.steps li{counter-increment:st;display:flex;gap:12px;align-items:flex-start;background:var(--bg);border-radius:14px;padding:12px 14px}
+.steps li::before{content:counter(st);flex-shrink:0;width:30px;height:30px;border-radius:15px;background:var(--sky);color:var(--on-sky);font-weight:900;display:flex;align-items:center;justify-content:center}
+.steps li.last{border:3px solid var(--gold)}
+.steps li.last::before{background:var(--gold);color:var(--on-gold)}
+.steps b{display:block;font-weight:900}
+.steps small{color:var(--muted)}
+.tag{display:inline-block;background:var(--gold);color:var(--on-gold);border-radius:8px;padding:0 8px;font-size:.75rem;font-weight:900;margin-left:8px;vertical-align:middle}
+.sim-sum{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.sim-sum div{background:var(--bg);border-radius:14px;padding:10px 12px}
+.sim-sum small{display:block;color:var(--soft);font-size:.8rem;font-weight:700}
+.sim-sum b{font-size:1.1rem;font-weight:900}
+.sim-left{font-size:.88rem;color:var(--muted);margin:10px 0 0}
+@media (max-width:560px){
+  .sim-head span:not(:first-child){width:128px}
+  .sim-row .step button{width:40px;height:40px}
+  .sim-row .step output{min-width:40px}
+  .loop{gap:10px}
+  .loop li b{font-size:.92rem}
+}
 @media (max-width:560px){
   .tiles{grid-template-columns:minmax(0,1fr)}
   .scen{grid-template-columns:minmax(0,1fr)}
@@ -180,34 +217,45 @@ tbody td{font-weight:700}
 <main class="wrap">
   <!-- GUIDE -->
   <section id="p-guide" role="tabpanel" aria-labelledby="t-guide">
-    <div class="card nav-card" id="nav" aria-live="polite"></div>
+    <div class="card">
+      <h2>基本の流れ</h2>
+      <ol class="loop">
+        <li><span class="lp-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"></path></svg></span><b>畑をタップ</b><small>空きマスが埋まるまで</small></li>
+        <li><span class="lp-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="7" height="7" rx="1.5"></rect><rect x="2" y="14" width="7" height="7" rx="1.5"></rect><path d="M9 6.5h2.5a2 2 0 0 1 2 2V12M9 17.5h2.5a2 2 0 0 0 2-2V12h2"></path><rect x="15.5" y="8" width="6.5" height="8" rx="1.5"></rect></svg></span><b>まとめて合成</b><small>土の上→低いレベルから</small></li>
+        <li><span class="lp-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="15.5" r="4.5"></circle><path d="m10.7 12.3 9.3-9.3M17 6l3 3M14.5 8.5l2.5 2.5"></path></svg></span><b>カギの合成は最後</b><small>霧が自動で開く</small></li>
+      </ol>
+      <p class="loop-back">エナジーがある限り、1に戻ってくり返す</p>
+    </div>
+
+    <div class="card sim-card">
+      <h2>合成の順番シミュレーター</h2>
+      <p class="muted" style="margin:-4px 0 12px">鍵マークのあるラインのピースを数えて入れると、合成する順番とカギまでのタップ数が出ます。</p>
+      <div class="row-btns" style="margin-bottom:12px"><button type="button" class="ghost" id="simEx">入力例を入れる</button><button type="button" class="ghost" id="simClear">クリア</button></div>
+      <div class="field" style="max-width:300px"><label for="simKey">カギが出るレベル（上のバーの鍵マーク）</label><input id="simKey" type="number" min="2" max="10" step="1" inputmode="numeric"></div>
+      <div id="simGrid"></div>
+      <div id="simOut" aria-live="polite"></div>
+      <p class="note">畑1回で一本の麦穂（Lv1）が1つ出る前提で計算しています。</p>
+    </div>
+
+    <div class="card">
+      <h2>こんなときは</h2>
+      <dl class="faq">
+        <dt>ボードが埋まって、合成できるペアもない</dt><dd>タップで使えるピース（最大レベル・コインなど）を使ってマスを空けます。</dd>
+        <dt>保管場所にバブルがある</dt><dd>タップすると1個ずつ出せます。空きマスが必要です。</dd>
+        <dt>見慣れないピースが出た</dt><dd>タップすると名前と使い方が出ます。</dd>
+        <dt>エナジーがなくなった</dt><dd>回復を待ちます。上限で溢れる前に戻りましょう。</dd>
+        <dt>カギの合成を最後にする理由</dt><dd>霧が開いて新しいエリアに移ると、残ったピースは保管場所に入るとルールにあります。先にほかを合成して数を減らしておくと安心です（錠前の霧で起きるかは未確認）。</dd>
+      </dl>
+    </div>
+
     <div class="card">
       <h2>ボードの見方</h2>
       <div class="tiles">
         <div class="tile"><span class="sw sw-open" aria-hidden="true"></span><div><b>明るいマス</b><small>空きマス。新しいピースは自動でここに出る</small></div></div>
-        <div class="tile"><span class="sw sw-dirt" aria-hidden="true"></span><div><b>土のマス</b><small>同じピースを重ねると解放</small></div></div>
+        <div class="tile"><span class="sw sw-dirt" aria-hidden="true"></span><div><b>土のマス</b><small>同じピースを上から重ねると解放</small></div></div>
         <div class="tile"><span class="sw sw-lock" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg></span><div><b>錠前の白い霧</b><small>カギが出ると自動で開く</small></div></div>
         <div class="tile"><span class="sw sw-fog" aria-hidden="true"></span><div><b>灰色の霧</b><small>探索が進むと開く</small></div></div>
       </div>
-    </div>
-    <div class="card">
-      <h2>迷ったらこの順番</h2>
-      <ol class="prio">
-        <li><b>カギが出るまで合成</b><span>霧が自動で開いて、マスと生成倍率が増える</span></li>
-        <li><b>土のマスの解放</b><span>使えるマスが増える</span></li>
-        <li><b>図鑑の新しいピース</b><span>★がもらえる</span></li>
-        <li><b>最大レベルのピース</b><span>タップでコインなど</span></li>
-      </ol>
-      <p class="note">ゲーム内ルールをもとにしたおすすめ順です。</p>
-    </div>
-    <div class="card">
-      <h2>よくある迷いどころ</h2>
-      <dl class="faq">
-        <dt>知らないピースがある</dt><dd>タップすると名前と使い方が出ます。</dd>
-        <dt>上のバーの鍵マーク</dt><dd>そのあたりのレベルまで合成するとカギが出る見込みです（推測）。カギは自動で使われ、霧が開きます。</dd>
-        <dt>エリアを移ったらピースが消えた</dt><dd>保管場所に入っています。バブルをタップすると1個ずつ出せます。</dd>
-        <dt>ピースが出てこない</dt><dd>空きマスがないと出ません。合成してマスを空けましょう。</dd>
-      </dl>
     </div>
   </section>
 
@@ -335,7 +383,7 @@ tbody td{font-weight:700}
   var state = {
     tab:'guide', got:{}, buy:{}, coinNow:'', coinPlan:false, coinExtra:'',
     eNow:'', eCap:'', eInt:'', eLogin:'', eEnd:DEFAULT_END, eFree:'', eGoal:'',
-    ePot:'', pick:{}
+    ePot:'', pick:{}, sim:null
   };
   try{
     var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
@@ -343,6 +391,7 @@ tbody td{font-weight:700}
   }catch(e){}
   if(!state.pick || typeof state.pick !== 'object'){ state.pick = {}; }
   if(state.ePot === '' || state.ePot == null){ state.ePot = '5'; }
+  if(!state.sim || typeof state.sim !== 'object' || !Array.isArray(state.sim.f) || !Array.isArray(state.sim.b)){ state.sim = {key:'6', f:[], b:[]}; }
   function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
 
   function $(id){ return document.getElementById(id); }
@@ -362,54 +411,75 @@ tbody td{font-weight:700}
   }
   tabIds.forEach(function(t){ $('t-'+t).addEventListener('click', function(){ showTab(t); }); });
 
-  /* ---------- guide nav ---------- */
-  var NAV = [
-    {q:'同じピースが2つある？（土の上のものも含む）', yes:{t:'重ねて合成', d:'片方が土の上なら、空いている方を土の上に重ねるとマスも解放されます。'}},
-    {q:'空きマスが2つ以下？', yes:{t:'マスを空ける', d:'タップで使えるピース（最大レベルなど）を使うか、合成できる組み合わせを探します。'}},
-    {q:'保管場所にバブルがある？', yes:{t:'バブルをタップ', d:'1回に1個出せます。空きマスが必要です。'}},
-    {q:'エナジーが残っている？', yes:{t:'畑をタップ', d:'ピースは空きマスに自動で出ます。出たらすぐ合成（鍵マークのラインを優先すると、カギが出て霧が自動で開きます）。終わったら最初の質問に戻ります。'}, no:{t:'回復を待つ', d:'上限で溢れる前に戻りましょう。ミッションとラプソディの受け取りも確認。'}}
-  ];
-  var SV = function(p){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>'; };
-  var ICON = {
-    merge: SV('<rect x="2" y="3" width="7" height="7" rx="1.5"></rect><rect x="2" y="14" width="7" height="7" rx="1.5"></rect><path d="M9 6.5h2.5a2 2 0 0 1 2 2V12M9 17.5h2.5a2 2 0 0 0 2-2V12h2"></path><rect x="15.5" y="8" width="6.5" height="8" rx="1.5"></rect>'),
-    key: SV('<circle cx="7.5" cy="15.5" r="4.5"></circle><path d="m10.7 12.3 9.3-9.3M17 6l3 3M14.5 8.5l2.5 2.5"></path>'),
-    grid: SV('<rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18M3 15h18M9 3v18M15 3v18"></path>'),
-    bubble: SV('<circle cx="11" cy="12" r="8"></circle><circle cx="8.5" cy="9.5" r="1.8"></circle><circle cx="20" cy="5" r="2"></circle>'),
-    bolt: SV('<path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"></path>'),
-    clock: SV('<circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path>')
-  };
-  var NAV_META = [
-    {icon:'merge', short:'合成'},
-    {icon:'grid', short:'空きマス'},
-    {icon:'bubble', short:'バブル'},
-    {icon:'bolt', short:'エナジー'}
-  ];
-  var navStep = 0, navRes = null;
-  function renderNav(){
-    var h = '<h2>次の一手ナビ</h2><p class="muted" style="margin:-4px 0 14px">ボードを見ながら、はい・いいえで答えるだけ</p><ol class="trail" aria-label="質問の進み具合">';
-    NAV_META.forEach(function(m,i){
-      var cls = i < navStep ? 'done' : (i === navStep ? (navRes ? 'hit' : 'now') : '');
-      h += '<li class="'+cls+'"'+(i === navStep ? ' aria-current="step"' : '')+'><span class="dot">'+ICON[m.icon]+'</span><span class="lb">'+esc(m.short)+'</span></li>';
-    });
-    h += '</ol>';
-    if(navRes){
-      var ic = (navRes === NAV[navStep].no) ? 'clock' : NAV_META[navStep].icon;
-      h += '<div class="ans pop"><span class="ans-ic">'+ICON[ic]+'</span><div><p class="note" style="margin:0">次にやること</p><p class="nav-a">'+esc(navRes.t)+'</p><p class="muted" style="margin:0">'+esc(navRes.d)+'</p></div></div><div class="row-btns nav-btns"><button type="button" class="yes" data-nav="restart">最初から</button></div>';
-    } else {
-      var s = NAV[navStep];
-      h += '<div class="qcard pop"><span class="q-ic">'+ICON[NAV_META[navStep].icon]+'</span><div style="width:100%"><p class="nav-meta"><span>質問 '+(navStep+1)+' / '+NAV.length+'</span></p><p class="nav-q">'+esc(s.q)+'</p></div></div><div class="row-btns nav-btns"><button type="button" class="yes" data-nav="yes">はい</button><button type="button" class="ghost" data-nav="no">いいえ</button></div>';
-    }
-    $('nav').innerHTML = h;
+  /* ---------- merge simulator ---------- */
+  var SIM_MAX = 10;
+  var SIM_NAMES = {1:'一本の麦穂', 3:'一袋の小麦粉', 4:'パン生地'};
+  function simKey(){ var k = parseInt(state.sim.key, 10); return isFinite(k) ? Math.max(2, Math.min(SIM_MAX, k)) : 6; }
+  function simGet(k, l){ return Math.max(0, parseInt(state.sim[k][l], 10) || 0); }
+  function stepper(k, l, label){
+    var v = simGet(k, l);
+    return '<div class="step"><button type="button" data-k="'+k+'" data-l="'+l+'" data-d="-1" aria-label="Lv'+l+' '+label+'を減らす"'+(v<=0?' disabled':'')+'>−</button><output>'+v+'</output><button type="button" data-k="'+k+'" data-l="'+l+'" data-d="1" aria-label="Lv'+l+' '+label+'を増やす">＋</button></div>';
   }
-  $('nav').addEventListener('click', function(e){
-    var b = e.target.closest('button[data-nav]'); if(!b) return;
-    var a = b.getAttribute('data-nav'), s = NAV[navStep];
-    if(a === 'restart'){ navStep = 0; navRes = null; }
-    else if(a === 'yes'){ navRes = s.yes; }
-    else if(s.no){ navRes = s.no; }
-    else { navStep++; }
-    renderNav();
-    var f = $('nav').querySelector('button'); if(f) f.focus();
+  function renderSimGrid(){
+    var key = simKey();
+    var h = '<div class="sim-row sim-head"><span>レベル</span><span>ボード上</span><span>土の上</span></div>';
+    for(var l=1; l<key; l++){
+      h += '<div class="sim-row"><span class="sim-lv">Lv'+l+(SIM_NAMES[l]?'<small>'+SIM_NAMES[l]+'</small>':'')+'</span>'+stepper('f', l, 'ボード上')+stepper('b', l, '土の上')+'</div>';
+    }
+    $('simGrid').innerHTML = h;
+  }
+  function renderSimOut(){
+    var key = simKey(), f = [], b = [], l, total = 0, val = 0;
+    for(l=1; l<=key; l++){ f[l] = l<key ? simGet('f', l) : 0; b[l] = l<key ? simGet('b', l) : 0; total += f[l] + b[l]; val += (f[l] + b[l]) * Math.pow(2, l-1); }
+    if(!total){ $('simOut').innerHTML = '<p class="sim-empty">ピースの数を入れてください。</p>'; return; }
+    var steps = [], last = [], freed = 0;
+    for(l=1; l<key; l++){
+      var toKey = (l+1 === key);
+      var m = Math.min(f[l], b[l]);
+      if(m > 0){
+        f[l] -= m; b[l] -= m; f[l+1] += m; freed += m;
+        (toKey ? last : steps).push({t:'Lv'+l+'を土の上のLv'+l+'に重ねる ×'+m, d:'土のマスが'+m+'つ解放、Lv'+(l+1)+'が'+m+'つ'+(toKey?'（カギが出る見込み）':'')});
+      }
+      var p = Math.floor(f[l] / 2);
+      if(p > 0){
+        f[l] -= 2*p; f[l+1] += p; freed += p;
+        (toKey ? last : steps).push({t:'Lv'+l+'どうしを合成 ×'+p, d:'Lv'+(l+1)+'が'+p+'つできる'+(toKey?'（カギが出る見込み）':'')});
+      }
+    }
+    var h = '<h3>この順番で合成</h3>';
+    if(!steps.length && !last.length){
+      h += '<p class="sim-empty">合成できるペアはありません。畑をタップしましょう。</p>';
+    } else {
+      h += '<ol class="steps">';
+      steps.forEach(function(s){ h += '<li><div><b>'+esc(s.t)+'</b><small>'+esc(s.d)+'</small></div></li>'; });
+      last.forEach(function(s){ h += '<li class="last"><div><b>'+esc(s.t)+'<span class="tag">最後に</span></b><small>'+esc(s.d)+'</small></div></li>'; });
+      h += '</ol>';
+    }
+    var need = Math.pow(2, key-1) - val;
+    h += '<div class="sim-sum"><div><small>空くマス</small><b>'+freed+'マス</b></div><div><small>カギ（Lv'+key+'）まで</small><b>'+(need<=0 ? '今の手持ちで届く' : 'あと約'+fmt(need)+'回タップ')+'</b></div></div>';
+    var rest = [], restB = [];
+    for(l=1; l<=key; l++){ if(f[l] > 0 && l < key) rest.push('Lv'+l+'×'+f[l]); if(b[l] > 0) restB.push('Lv'+l+'×'+b[l]); }
+    if(rest.length || restB.length){
+      h += '<p class="sim-left">合成後に残るピース：'+(rest.length?rest.join('、'):'なし')+(restB.length?'／土の上に残る：'+restB.join('、'):'')+'</p>';
+    }
+    $('simOut').innerHTML = h;
+  }
+  $('simGrid').addEventListener('click', function(e){
+    var bt = e.target.closest('button[data-k]'); if(!bt) return;
+    var k = bt.getAttribute('data-k'), l = +bt.getAttribute('data-l'), d = +bt.getAttribute('data-d');
+    state.sim[k][l] = Math.max(0, simGet(k, l) + d);
+    save(); renderSimGrid(); renderSimOut();
+    var again = document.querySelector('#simGrid button[data-k="'+k+'"][data-l="'+l+'"][data-d="'+d+'"]');
+    if(again && !again.disabled) again.focus();
+  });
+  $('simKey').addEventListener('input', function(){ state.sim.key = $('simKey').value; save(); renderSimGrid(); renderSimOut(); });
+  $('simEx').addEventListener('click', function(){
+    state.sim = {key:'6', f:[0,5,0,0,1,2], b:[]};
+    $('simKey').value = '6'; save(); renderSimGrid(); renderSimOut();
+  });
+  $('simClear').addEventListener('click', function(){
+    state.sim = {key: state.sim.key || '6', f:[], b:[]};
+    save(); renderSimGrid(); renderSimOut();
   });
 
   /* ---------- stars ---------- */
@@ -576,7 +646,8 @@ tbody td{font-weight:700}
   function renderAll(){ renderLines(); renderGoals(); renderItems(); renderShop(); renderEnergy(); }
   renderScen();
   renderAll();
-  renderNav();
+  $('simKey').value = state.sim.key || '6';
+  renderSimGrid(); renderSimOut();
   showTab(tabIds.indexOf(state.tab) >= 0 ? state.tab : 'guide');
   setInterval(renderEnergy, 60000);
 })();
